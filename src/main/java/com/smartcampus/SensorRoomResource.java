@@ -77,4 +77,42 @@ public class SensorRoomResource {
         // Return a successful 201 Created and return the newly generated object
         return Response.status(Response.Status.CREATED).entity(newRoom).build();
     }
+
+    /**
+     * DELETE /api/v1/rooms/{roomId}
+     * Safely deletes a room if there are no existing sensors deployed inside it.
+     */
+    @DELETE
+    @Path("/{roomId}")
+    public Response deleteRoom(@PathParam("roomId") String roomId) {
+        Room room = DataStore.rooms.get(roomId);
+
+        // Standard 404 if the room never existed or was already deleted gracefully handling Idempotency
+        if (room == null) {
+            throw new WebApplicationException(
+                Response.status(Response.Status.NOT_FOUND)
+                        .entity("{\"error\": \"Not Found\", \"message\": \"Room " + roomId + " does not exist.\"}")
+                        .type(MediaType.APPLICATION_JSON)
+                        .build()
+            );
+        }
+
+        // Logical Constraint: Prevent Data Orphans
+        if (!room.getSensorIds().isEmpty()) {
+            throw new WebApplicationException(
+                Response.status(Response.Status.CONFLICT)
+                        .entity("{\"error\": \"Conflict\", \"message\": \"Cannot delete room " + roomId + " because it still contains active sensors.\"}")
+                        .type(MediaType.APPLICATION_JSON)
+                        .build()
+            );
+        }
+
+        // Execute Deletion
+        DataStore.rooms.remove(roomId);
+
+        // Return a meaningful JSON representation of the deletion
+        String successJson = String.format("{\"status\": \"success\", \"message\": \"Room %s deleted successfully\"}", roomId);
+        return Response.ok(successJson).build();
+    }
 }
+
