@@ -8,6 +8,8 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Resource controller for Sensor operations.
@@ -80,5 +82,25 @@ public class SensorResource {
 
         // Return a successful 201 Created and return the newly generated object
         return Response.status(Response.Status.CREATED).entity(newSensor).build();
+    }
+
+    /**
+     * GET /api/v1/sensors
+     * Retrieves all registered sensors, optionally filtered by type.
+     */
+    @GET
+    public Response getSensors(@QueryParam("type") String type) {
+        Collection<Sensor> allSensors = DataStore.sensors.values();
+
+        if (type == null || type.trim().isEmpty()) {
+            return Response.ok(allSensors).build();
+        }
+
+        // Filter by type
+        List<Sensor> filteredSensors = allSensors.stream()
+                .filter(sensor -> type.equalsIgnoreCase(sensor.getType()))
+                .collect(Collectors.toList());
+
+        return Response.ok(filteredSensors).build();
     }
 }
