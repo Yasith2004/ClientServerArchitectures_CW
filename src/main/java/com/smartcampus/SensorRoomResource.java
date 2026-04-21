@@ -99,11 +99,8 @@ public class SensorRoomResource {
 
         // Logical Constraint: Prevent Data Orphans
         if (!room.getSensorIds().isEmpty()) {
-            throw new WebApplicationException(
-                Response.status(Response.Status.CONFLICT)
-                        .entity("{\"error\": \"Conflict\", \"message\": \"Cannot delete room " + roomId + " because it still contains active sensors.\"}")
-                        .type(MediaType.APPLICATION_JSON)
-                        .build()
+            throw new com.smartcampus.exception.RoomNotEmptyException(
+                "Cannot delete room " + roomId + " because it still contains active sensors."
             );
         }
 
