@@ -103,4 +103,25 @@ public class SensorResource {
 
         return Response.ok(filteredSensors).build();
     }
+
+    /**
+     * Sub-Resource Locator Pattern:
+     * Delegates requests for /api/v1/sensors/{sensorId}/readings to SensorReadingResource.
+     */
+    @Path("/{sensorId}/readings")
+    public SensorReadingResource getSensorReadingResource(@PathParam("sensorId") String sensorId) {
+        // Validate if sensor actually exists
+        Sensor sensor = DataStore.sensors.get(sensorId);
+        if (sensor == null) {
+            throw new WebApplicationException(
+                Response.status(Response.Status.NOT_FOUND)
+                        .entity("{\"error\": \"Not Found\", \"message\": \"Sensor " + sensorId + " does not exist.\"}")
+                        .type(MediaType.APPLICATION_JSON)
+                        .build()
+            );
+        }
+
+        // Delegate to the sub-resource controller
+        return new SensorReadingResource(sensorId);
+    }
 }
