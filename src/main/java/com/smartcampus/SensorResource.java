@@ -1,5 +1,6 @@
 package com.smartcampus;
 
+import com.smartcampus.exception.LinkedResourceNotFoundException;
 import com.smartcampus.model.Room;
 import com.smartcampus.model.Sensor;
 import com.smartcampus.store.DataStore;
@@ -37,7 +38,7 @@ public class SensorResource {
 
         // Validation: Check for uniqueness
         if (DataStore.sensors.containsKey(newSensor.getId())) {
-             throw new WebApplicationException(
+            throw new WebApplicationException(
                 Response.status(Response.Status.CONFLICT)
                         .entity("{\"error\": \"Conflict\", \"message\": \"A sensor with id " + newSensor.getId() + " already exists.\"}")
                         .type(MediaType.APPLICATION_JSON)
@@ -45,7 +46,7 @@ public class SensorResource {
             );
         }
 
-        // Validation: Verify roomId exists
+        // Validation: roomId must be present
         if (newSensor.getRoomId() == null || newSensor.getRoomId().trim().isEmpty()) {
             throw new WebApplicationException(
                 Response.status(Response.Status.BAD_REQUEST)
@@ -55,38 +56,35 @@ public class SensorResource {
             );
         }
 
+        // Validation: roomId must reference an existing Room → throws LinkedResourceNotFoundException → 422
         Room existingRoom = DataStore.rooms.get(newSensor.getRoomId());
         if (existingRoom == null) {
-            throw new WebApplicationException(
-                Response.status(Response.Status.NOT_FOUND)
-                        .entity("{\"error\": \"Not Found\", \"message\": \"Parent Room " + newSensor.getRoomId() + " does not exist.\"}")
-                        .type(MediaType.APPLICATION_JSON)
-                        .build()
+            throw new LinkedResourceNotFoundException(
+                "The roomId '" + newSensor.getRoomId() + "' does not reference any existing Room in the system."
             );
         }
 
-        // Default constraints for status mapping (e.g., ACTIVE if empty)
+        // Default status to ACTIVE if not provided
         if (newSensor.getStatus() == null || newSensor.getStatus().trim().isEmpty()) {
             newSensor.setStatus("ACTIVE");
         }
 
-        // Add to main memory pool
+        // Persist sensor
         DataStore.sensors.put(newSensor.getId(), newSensor);
 
-        // Link sensor ID to the respective Room
+        // Link sensor ID to the respective Room object
         synchronized (existingRoom) {
             if (!existingRoom.getSensorIds().contains(newSensor.getId())) {
                 existingRoom.getSensorIds().add(newSensor.getId());
             }
         }
 
-        // Return a successful 201 Created and return the newly generated object
         return Response.status(Response.Status.CREATED).entity(newSensor).build();
     }
 
     /**
      * GET /api/v1/sensors
-     * Retrieves all registered sensors, optionally filtered by type.
+     * Retrieves all registered sensors, optionally filtered by ?type=
      */
     @GET
     public Response getSensors(@QueryParam("type") String type) {
@@ -96,11 +94,32 @@ public class SensorResource {
             return Response.ok(allSensors).build();
         }
 
-        // Filter by type
+        // Filter by type (case-insensitive)
         List<Sensor> filteredSensors = allSensors.stream()
                 .filter(sensor -> type.equalsIgnoreCase(sensor.getType()))
                 .collect(Collectors.toList());
 
         return Response.ok(filteredSensors).build();
+    }
+
+    /**
+     * Sub-Resource Locator Pattern:
+     * Delegates all requests for /api/v1/sensors/{sensorId}/readings to SensorReadingResource.
+     */
+    @Path("/{sensorId}/readings")
+    public SensorReadingResource getSensorReadingResource(@PathParam("sensorId") String sensorId) {
+        // Validate parent sensor exists before delegating
+        Sensor sensor = DataStore.sensors.get(sensorId);
+        if (sensor == null) {
+            throw new WebApplicationException(
+                Response.status(Response.Status.NOT_FOUND)
+                        .entity("{\"error\": \"Not Found\", \"message\": \"Sensor " + sensorId + " does not exist.\"}")
+                        .type(MediaType.APPLICATION_JSON)
+                        .build()
+            );
+        }
+
+        // Delegate to the sub-resource controller, passing sensorId as context
+        return new SensorReadingResource(sensorId);
     }
 }
