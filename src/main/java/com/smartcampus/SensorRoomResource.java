@@ -1,6 +1,5 @@
 package com.smartcampus;
 
-import com.smartcampus.exception.RoomNotEmptyException;
 import com.smartcampus.model.Room;
 import com.smartcampus.store.DataStore;
 
@@ -64,7 +63,7 @@ public class SensorRoomResource {
 
         // Validation: Check for uniqueness
         if (DataStore.rooms.containsKey(newRoom.getId())) {
-            throw new WebApplicationException(
+             throw new WebApplicationException(
                 Response.status(Response.Status.CONFLICT)
                         .entity("{\"error\": \"Conflict\", \"message\": \"A room with id " + newRoom.getId() + " already exists.\"}")
                         .type(MediaType.APPLICATION_JSON)
@@ -75,20 +74,20 @@ public class SensorRoomResource {
         // Add to main memory pool
         DataStore.rooms.put(newRoom.getId(), newRoom);
 
-        // Return a successful 201 Created with the newly created object
+        // Return a successful 201 Created and return the newly generated object
         return Response.status(Response.Status.CREATED).entity(newRoom).build();
     }
 
     /**
      * DELETE /api/v1/rooms/{roomId}
-     * Safely deletes a room only if it has no active sensors assigned to it.
+     * Safely deletes a room if there are no existing sensors deployed inside it.
      */
     @DELETE
     @Path("/{roomId}")
     public Response deleteRoom(@PathParam("roomId") String roomId) {
         Room room = DataStore.rooms.get(roomId);
 
-        // 404 if the room never existed or was already deleted (idempotency)
+        // Standard 404 if the room never existed or was already deleted gracefully handling Idempotency
         if (room == null) {
             throw new WebApplicationException(
                 Response.status(Response.Status.NOT_FOUND)
@@ -98,18 +97,22 @@ public class SensorRoomResource {
             );
         }
 
-        // Business constraint: throw RoomNotEmptyException → mapped to 409 Conflict
+        // Logical Constraint: Prevent Data Orphans
         if (!room.getSensorIds().isEmpty()) {
-            throw new RoomNotEmptyException(
-                "Cannot delete room '" + roomId + "' because it still contains active sensors: " + room.getSensorIds()
+            throw new WebApplicationException(
+                Response.status(Response.Status.CONFLICT)
+                        .entity("{\"error\": \"Conflict\", \"message\": \"Cannot delete room " + roomId + " because it still contains active sensors.\"}")
+                        .type(MediaType.APPLICATION_JSON)
+                        .build()
             );
         }
 
-        // Execute deletion
+        // Execute Deletion
         DataStore.rooms.remove(roomId);
 
-        // Return a meaningful success representation
+        // Return a meaningful JSON representation of the deletion
         String successJson = String.format("{\"status\": \"success\", \"message\": \"Room %s deleted successfully\"}", roomId);
         return Response.ok(successJson).build();
     }
 }
+
