@@ -57,11 +57,8 @@ public class SensorResource {
 
         Room existingRoom = DataStore.rooms.get(newSensor.getRoomId());
         if (existingRoom == null) {
-            throw new WebApplicationException(
-                Response.status(Response.Status.NOT_FOUND)
-                        .entity("{\"error\": \"Not Found\", \"message\": \"Parent Room " + newSensor.getRoomId() + " does not exist.\"}")
-                        .type(MediaType.APPLICATION_JSON)
-                        .build()
+            throw new com.smartcampus.exception.LinkedResourceNotFoundException(
+                "The roomId '" + newSensor.getRoomId() + "' does not reference any existing Room in the system."
             );
         }
 
@@ -102,5 +99,26 @@ public class SensorResource {
                 .collect(Collectors.toList());
 
         return Response.ok(filteredSensors).build();
+    }
+
+    /**
+     * Sub-Resource Locator Pattern:
+     * Delegates all requests for /api/v1/sensors/{sensorId}/readings to SensorReadingResource.
+     */
+    @Path("/{sensorId}/readings")
+    public SensorReadingResource getSensorReadingResource(@PathParam("sensorId") String sensorId) {
+        // Validate parent sensor exists before delegating
+        Sensor sensor = DataStore.sensors.get(sensorId);
+        if (sensor == null) {
+            throw new WebApplicationException(
+                Response.status(Response.Status.NOT_FOUND)
+                        .entity("{\"error\": \"Not Found\", \"message\": \"Sensor " + sensorId + " does not exist.\"}")
+                        .type(MediaType.APPLICATION_JSON)
+                        .build()
+            );
+        }
+
+        // Delegate to the sub-resource controller, passing sensorId as context
+        return new SensorReadingResource(sensorId);
     }
 }
