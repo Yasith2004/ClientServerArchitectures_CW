@@ -9,11 +9,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Main class.
+ * Local development server using Grizzly.
+ * This class allows you to run the API locally without a full servlet container.
+ * For production or NetBeans deployment, use a standard container like Tomcat.
  */
-public class Main {
+public class GrizzlyLocalServer {
     // Base URI the Grizzly HTTP server will listen on
-    // Note: Grizzly with Jersey handles the context root better when it is part of the BASE_URI
     public static final String BASE_URI = "http://localhost:8080/api/v1/";
 
     /**
@@ -36,13 +37,13 @@ public class Main {
     public static void main(String[] args) {
         try {
             startServer();
-            Logger.getLogger(Main.class.getName()).info(String.format("Jersey app started with endpoints available at "
+            Logger.getLogger(GrizzlyLocalServer.class.getName()).info(String.format("Jersey app started with endpoints available at "
                     + "%s%nHit Ctrl-C to stop it...", BASE_URI));
                     
             // Keeping the main thread alive since Grizzly spans backgrounds threads
             Thread.currentThread().join();
         } catch (InterruptedException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(GrizzlyLocalServer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }
