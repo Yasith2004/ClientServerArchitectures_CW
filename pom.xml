@@ -13,26 +13,26 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <jersey.version>3.1.5</jersey.version>
+        <jersey.version>2.39.1</jersey.version>
     </properties>
 
     <dependencies>
-        <!-- Jersey Servlet Container (Required for WAR deployment) -->
+        <!-- Jersey Servlet Container -->
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-servlet</artifactId>
             <version>${jersey.version}</version>
         </dependency>
 
-        <!-- Jakarta Servlet API (Provided by the container like Tomcat) -->
+        <!-- Java EE 8 Servlet API -->
         <dependency>
-            <groupId>jakarta.servlet</groupId>
-            <artifactId>jakarta.servlet-api</artifactId>
-            <version>6.0.0</version>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>4.0.1</version>
             <scope>provided</scope>
         </dependency>
 
-        <!-- Jersey Grizzly (Keep as provided if we want to keep Main.java for local tests) -->
+        <!-- Jersey Grizzly (Keep for local tests) -->
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-grizzly2-http</artifactId>
@@ -54,11 +54,11 @@
             <version>${jersey.version}</version>
         </dependency>
 
-        <!-- JAXB API -->
+        <!-- JAXB API (javax) -->
         <dependency>
-            <groupId>jakarta.xml.bind</groupId>
-            <artifactId>jakarta.xml.bind-api</artifactId>
-            <version>4.0.2</version>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.1</version>
         </dependency>
     </dependencies>
 
