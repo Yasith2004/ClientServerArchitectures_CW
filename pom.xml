@@ -63,7 +63,7 @@
     </dependencies>
 
     <build>
-        <finalName>smart-campus</finalName>
+        <finalName>ROOT</finalName>
         <plugins>
             <!-- Maven Compiler Plugin -->
             <plugin>
