@@ -63,6 +63,7 @@
     </dependencies>
 
     <build>
+        <finalName>smart-campus</finalName>
         <plugins>
             <!-- Maven Compiler Plugin -->
             <plugin>
@@ -82,6 +83,16 @@
                 <version>3.4.0</version>
                 <configuration>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
+                </configuration>
+            </plugin>
+
+            <!-- Maven Exec Plugin to run GrizzlyLocalServer from terminal -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <mainClass>com.smartcampus.GrizzlyLocalServer</mainClass>
                 </configuration>
             </plugin>
         </plugins>
