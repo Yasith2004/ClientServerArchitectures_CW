@@ -9,22 +9,31 @@ The Smart Campus API is a RESTful system designed to manage rooms, sensors, and 
 
 ## Build and Launch Instructions
 
-### Option 1: Using the Terminal (Maven)
-To compile and run the server directly from your terminal, follow these steps:
-1. Ensure you have **Java 21** and **Maven** installed and added to your path.
+### Option 1: Using the Terminal (Embedded Grizzly Server)
+This is the fastest way to test the API during development without needing a full server installation.
+1. Ensure you have **Java 21** and **Maven** installed.
 2. Open your terminal in the project root directory.
-3. Run the following command to clean, compile, and start the Grizzly server:
+3. Run the following command:
    ```bash
    mvn clean compile exec:java
    ```
-4. The server will start on `http://localhost:8080/api/v1/`.
+4. The server will start at `http://localhost:8080/api/v1/`.
 
 ### Option 2: Using NetBeans IDE
-To load and run the project in NetBeans:
 1. Open **NetBeans IDE**.
-2. Go to **File > Open Project** and select the folder containing this `pom.xml`.
-3. Once the project is loaded and dependencies are resolved, right-click the project in the sidebar.
-4. Select **Run** (or click the Green play icon). NetBeans will invoke the Maven `exec` goal to launch the `Main` class.
+2. Go to **File > Open Project** and select the folder containing the `pom.xml`.
+3. Right-click the project in the sidebar and select **Run**. 
+4. NetBeans is configured to use the Maven `exec` goal to launch the `GrizzlyLocalServer`.
+
+### Option 3: Using an External Container (Apache Tomcat 9)
+This project is configured as a `war` application for deployment to standard Java EE 8 containers.
+1. Run the following command to build the production archive:
+   ```bash
+   mvn clean package
+   ```
+2. Locate the generated file at `target/ROOT.war`.
+3. Copy this file into the `webapps` directory of your **Tomcat 9** installation.
+4. Once Tomcat starts, the API will be available at `http://localhost:8080/api/v1/` (if named ROOT.war) or `http://localhost:8080/client-server-architectures-cw/api/v1/` depending on the file name.
 
 ## Sample API Interactions (CURL)
 Below are five sample commands to interact with the API once the server is running.
