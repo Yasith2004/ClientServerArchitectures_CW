@@ -63,7 +63,7 @@
     </dependencies>
 
     <build>
-        <finalName>ROOT</finalName>
+        <finalName>client-server-architectures-cw</finalName>
         <plugins>
             <!-- Maven Compiler Plugin -->
             <plugin>
